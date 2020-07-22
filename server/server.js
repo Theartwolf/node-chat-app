@@ -18,14 +18,14 @@ io.on('connection',(socket)=>{
     socket.broadcast.emit('newMessage',generateMessage('Admin', 'New User Joined'));
 
     socket.on('createMessage', (message)=>{
-        console.log(message);
-        // io.emit('newMessage', generateMessage(message.from, meassage.text));
+        console.log('server: ', message);
+        io.emit('newMessage', generateMessage(message.from, message.text));
         //broadcast.emit will not send message to the sender
-        socket.broadcast.emit('newMessage',{
-            from: message.from,
-            text: message.text,
-            createdAt: new Date().getTime()
-        })
+        // socket.broadcast.emit('newMessage',{
+        //     from: message.from,
+        //     text: message.text,
+        //     createdAt: new Date().getTime()
+        // })
     })
 
     socket.on('disconnect',()=>{
