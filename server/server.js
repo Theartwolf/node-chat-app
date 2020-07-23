@@ -38,9 +38,14 @@ io.on('connection',(socket)=>{
     })
 
     //listener of createMessage
-    socket.on('createMessage', (message)=>{
-        console.log('server: ', message);
-        io.emit('newMessage', generateMessage(message.from, message.text));
+    socket.on('createMessage', (message, callback)=>{
+        var user = users.getUser(socket.id);
+
+        if(user && isStringValid(message.text)){
+            io.to(user.room).emit('newMessage', generateMessage(user.name, message.text));
+        }
+        
+        callback();
         //broadcast.emit will not send message to the sender
         // socket.broadcast.emit('newMessage',{
         //     from: message.from,
@@ -51,7 +56,11 @@ io.on('connection',(socket)=>{
 
     //listener for createLocationMessage
     socket.on('createLocationMessage', (coords)=>{
-        io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude, coords.longitude));
+        var user = users.getUser(socket.id);
+        if(user){
+            io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, coords.latitude, coords.longitude));
+        }
+        // callback();
     })
 
     socket.on('disconnect',()=>{

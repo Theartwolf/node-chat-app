@@ -19,10 +19,6 @@ var scrollToBottom = function(){
 }
 
 socket.on('connect',function(){
-    // console.log('connected to server');
-    //socket.emit - run on dev tools on chrome
-    // socket.emit('createMessage',generateMessage());
-
     var param = jQuery.deparam(window.location.search);
 
     socket.emit('join', param, function(err){
@@ -106,12 +102,10 @@ jQuery('#message-form').on('submit', function(e){
     var messageTextbox = jQuery('[name=message]');
 
     socket.emit('createMessage', {
-        from: 'User',
         text: messageTextbox.val()
     }, () =>{
         messageTextbox.val('');
     })
-    messageTextbox.val('');
 })
 
 //setup for location button
