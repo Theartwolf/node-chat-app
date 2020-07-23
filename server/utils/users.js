@@ -23,7 +23,7 @@ class Users{
     getUser(id){
         return this.users.filter( (user) =>{
             return user.id === id;
-        });
+        })[0]
     }
 
     getUsersList(room){
