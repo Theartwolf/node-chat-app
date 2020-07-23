@@ -2,8 +2,12 @@ const path = require('path');
 const express = require('express');
 const socketIO = require('socket.io');
 const http = require('http');
+
+//local files
 const { generateMessage, generateLocationMessage } = require('./utils/message');
+const { isStringValid } = require('./utils/validation');
 const message = require('./utils/message');
+const {Users} = require('./utils/users');
 
 //creating server
 const publicPath = path.join(__dirname , '../public');
@@ -11,14 +15,27 @@ const port = process.env.PORT || 3000;
 var app = express();
 var server = http.createServer(app);
 var io = socketIO(server);
+var users = new Users();
 
 io.on('connection',(socket)=>{
     console.log('New user connected');
 
-    socket.emit('newMessage', generateMessage('Admin', 'Welcome to chat app'));
+    socket.on('join', (param, callback)=>{
+        if(!isStringValid(param.name) || !isStringValid(param.room)){
+           return  callback('Incorrect name or room');
+        }
+        socket.join(param.room);
+        users.removeUser(socket.id);
+        users.addUser(socket.id, param.name, param.room);
 
-    //message to the new user
-    socket.broadcast.emit('newMessage',generateMessage('Admin', 'New User Joined'));
+        io.to(param.room).emit('updateUserList', users.getUsersList(param.room));
+        socket.emit('newMessage', generateMessage('Admin', 'Welcome to chat app'));
+        //message to the new user
+        //displaying message only to room members
+        socket.broadcast.to(param.room).emit('newMessage',generateMessage('Admin', `${param.name} has joined`));
+
+        callback();
+    })
 
     //listener of createMessage
     socket.on('createMessage', (message)=>{
@@ -39,6 +56,12 @@ io.on('connection',(socket)=>{
 
     socket.on('disconnect',()=>{
         console.log('User disconnected');
+        var user = users.removeUser(socket.id);
+
+        if(user){
+            io.to(user.room).emit('updateUserList', users.getUsersList(user.room));
+            io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} has left`));
+        }
     })
 })
 
