@@ -5,6 +5,7 @@ const http = require('http');
 const { generateMessage, generateLocationMessage } = require('./utils/message');
 const message = require('./utils/message');
 
+//creating server
 const publicPath = path.join(__dirname , '../public');
 const port = process.env.PORT || 3000;
 var app = express();
@@ -16,8 +17,10 @@ io.on('connection',(socket)=>{
 
     socket.emit('newMessage', generateMessage('Admin', 'Welcome to chat app'));
 
+    //message to the new user
     socket.broadcast.emit('newMessage',generateMessage('Admin', 'New User Joined'));
 
+    //listener of createMessage
     socket.on('createMessage', (message)=>{
         console.log('server: ', message);
         io.emit('newMessage', generateMessage(message.from, message.text));
@@ -29,6 +32,7 @@ io.on('connection',(socket)=>{
         // })
     })
 
+    //listener for createLocationMessage
     socket.on('createLocationMessage', (coords)=>{
         io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude, coords.longitude));
     })
@@ -39,9 +43,9 @@ io.on('connection',(socket)=>{
 })
 
 
-
+//using express middleware for index.html
 app.use(express.static(publicPath));
 
 server.listen(port, ()=>{
-    console.log('The server is up on Port 3000');
+    console.log(`The server is up on Port ${port}`);
 });
